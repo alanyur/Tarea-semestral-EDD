@@ -3,9 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
-#include <bitset>
 #include <sstream>
-#include <chrono>
 
 using namespace std;
 
@@ -22,7 +20,6 @@ struct HuffmanNode {
     }
 };
 
-// Comparator to be used in priority queue
 struct compare {
     bool operator()(HuffmanNode* l, HuffmanNode* r) {
         return (l->frequency > r->frequency);
@@ -34,26 +31,24 @@ public:
     unordered_map<char, string> huffmanCode;
     HuffmanNode* root;
 
-    HuffmanCoding() {
-        root = nullptr;
-    }
+    HuffmanCoding() : root(nullptr) {}
 
     ~HuffmanCoding() {
         freeTree(root);
     }
 
-    string codificar(string text) {
+    string codificar(const string& text) {
         root = buildHuffmanTree(text);
-        generateCodes(root, "", huffmanCode);
-        return encode(text, huffmanCode);
+        generateCodes(root, "");
+        return encode(text);
     }
 
-    string decodificar(string encodedString) {
-        return decode(root, encodedString);
+    string decodificar(const string& encodedString) {
+        return decode(encodedString);
     }
 
 private:
-    HuffmanNode* buildHuffmanTree(string text) {
+    HuffmanNode* buildHuffmanTree(const string& text) {
         unordered_map<char, int> freq;
         for (char ch : text) {
             freq[ch]++;
@@ -79,18 +74,17 @@ private:
         return minHeap.top();
     }
 
-    void generateCodes(HuffmanNode* root, string str, unordered_map<char, string>& huffmanCode) {
-        if (!root)
-            return;
+    void generateCodes(HuffmanNode* root, const string& str) {
+        if (!root) return;
 
         if (root->data != '$')
             huffmanCode[root->data] = str;
 
-        generateCodes(root->left, str + "0", huffmanCode);
-        generateCodes(root->right, str + "1", huffmanCode);
+        generateCodes(root->left, str + "0");
+        generateCodes(root->right, str + "1");
     }
 
-    string encode(string text, unordered_map<char, string>& huffmanCode) {
+    string encode(const string& text) {
         stringstream encodedStream;
         for (char ch : text) {
             encodedStream << huffmanCode[ch];
@@ -98,11 +92,11 @@ private:
         return encodedStream.str();
     }
 
-    string decode(HuffmanNode* root, string encodedString) {
+    string decode(const string& encodedString) {
         string decodedString = "";
         HuffmanNode* current = root;
-        for (int i = 0; i < encodedString.size(); i++) {
-            if (encodedString[i] == '0')
+        for (char ch : encodedString) {
+            if (ch == '0')
                 current = current->left;
             else
                 current = current->right;
