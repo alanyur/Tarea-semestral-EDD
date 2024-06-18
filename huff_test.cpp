@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "Huffman.cpp"
+#include "huff_codification.cpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -28,14 +28,25 @@ int main() {
         cerr << "El archivo de entrada está vacío o no se pudo leer." << endl;
         return 1;
     }
-    
-    HuffmanCoding huffman;
-    auto start = high_resolution_clock::now();
-    string encodedString = huffman.codificar(text);
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
 
-    cout << encodedString << " " << duration.count() / 1e6 << endl;
+    HuffmanCoding huffman;
+    string encodedString = huffman.codificar(text);
+
+    auto start = high_resolution_clock::now();
+    huffman.codificar(text);
+    auto stop = high_resolution_clock::now();
+    auto encode_duration = duration_cast<microseconds>(stop - start).count();
+    cout << "Resultado de Codificar:" << encodedString << endl;
+    cout << "Tiempo de Codificar:" << encode_duration << endl;
+
+    string decodedString = huffman.decodificar(encodedString);
+
+    start = high_resolution_clock::now();
+    huffman.decodificar(encodedString);
+    stop = high_resolution_clock::now();
+    auto decode_duration = duration_cast<microseconds>(stop - start).count();
+    cout << "Resultado de Descodificar:" << decodedString << endl;
+    cout << "Tiempo de Descodificar:" << decode_duration << endl;
 
     return 0;
 }

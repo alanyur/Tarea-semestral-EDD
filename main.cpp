@@ -6,7 +6,7 @@
 #include <string>
 
 #include "LZ2.cpp"
-#include "Huffman.cpp"
+#include "huff_codification.cpp"
 #include "LZ78.cpp"
 
 using namespace std;
