@@ -2,7 +2,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "LZ78.cpp"
+#include <vector>
+#include <utility>
+#include "LZ.cpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -29,11 +31,11 @@ int main() {
         return 1;
     }
 
-    LZ78 lz78;
+    LZ lz;
 
     // Comprimir y obtener los pares ordenados del diccionario
     auto start = high_resolution_clock::now();
-    vector<pair<int, char>> compressed = lz78.compress(text);
+    vector<pair<int, int>> compressed = lz.comprimir(text);
     auto stop = high_resolution_clock::now();
     auto encode_duration = duration_cast<microseconds>(stop - start).count();
 
@@ -41,16 +43,20 @@ int main() {
     stringstream compressed_result;
     compressed_result << "Resultado de Codificar: ";
     for (const auto& entry : compressed) {
-        compressed_result << "(" << entry.first << ", " << entry.second << ") ";
+        if (entry.second == 0) {
+            compressed_result << "(" << static_cast<char>(entry.first) << ", " << entry.second << ") ";
+        } else {
+            compressed_result << "(" << entry.first << ", " << entry.second << ") ";
+        }
     }
     compressed_result << endl;
     compressed_result << "Tiempo de Codificar: " << encode_duration << " microseconds" << endl;
 
     // Realizar la descompresión y medir el tiempo
-    string decodedString = lz78.decompress(compressed);
+    string decodedString = lz.descomprimir(compressed);
 
     start = high_resolution_clock::now();
-    lz78.decompress(compressed);
+    lz.descomprimir(compressed);
     stop = high_resolution_clock::now();
     auto decode_duration = duration_cast<microseconds>(stop - start).count();
 
