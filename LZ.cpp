@@ -5,7 +5,6 @@
 
 class LZ {
 public:
-    // Compress the input string and return the compressed output
     std::vector<std::pair<int, int>> comprimir(const std::string& input) {
         std::vector<std::pair<int, int>> output;
         int i = 0;
@@ -38,8 +37,6 @@ public:
 
         return output;
     }
-
-    // Decompress the input vector of pairs and return the decompressed string
     std::string descomprimir(const std::vector<std::pair<int, int>>& input) {
         std::string output;
 

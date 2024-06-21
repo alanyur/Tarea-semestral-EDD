@@ -2,51 +2,90 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
+#include <iomanip>
 #include "huff_codification.cpp"
 
 using namespace std;
 using namespace std::chrono;
 
-string readFile(const string& filename) {
+vector<string> readLines(const string& filename) {
     ifstream inFile(filename);
+    vector<string> lines;
+    string line;
     if (inFile.is_open()) {
-        stringstream buffer;
-        buffer << inFile.rdbuf();
+        while (getline(inFile, line)) {
+            lines.push_back(line);
+        }
         inFile.close();
-        return buffer.str();
     } else {
         cerr << "No se pudo abrir el archivo de entrada: " << filename << endl;
-        return "";
     }
+    return lines;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     string inputFilename = "input.txt";
-    string text = readFile(inputFilename);
+    int numExperiments = 1;
 
-    if (text.empty()) {
+    if (argc > 1) {
+        numExperiments = stoi(argv[1]);
+    }
+
+    vector<string> lines = readLines(inputFilename);
+
+    if (lines.empty()) {
         cerr << "El archivo de entrada está vacío o no se pudo leer." << endl;
         return 1;
     }
 
     HuffmanCoding huffman;
-    string encodedString = huffman.codificar(text);
 
-    auto start = high_resolution_clock::now();
-    huffman.codificar(text);
-    auto stop = high_resolution_clock::now();
-    auto encode_duration = duration_cast<microseconds>(stop - start).count();
-    cout << "Resultado de Codificar:" << encodedString << endl;
-    cout << "Tiempo de Codificar:" << encode_duration << endl;
+    vector<string> encodedResults;
+    vector<vector<double>> encodeTimes(lines.size(), vector<double>(numExperiments));
+    vector<string> decodedResults;
+    vector<vector<double>> decodeTimes(lines.size(), vector<double>(numExperiments));
+    for (int i = 0; i < lines.size(); ++i) {
+        string text = lines[i];
+        string encodedString;
+        for (int j = 0; j < numExperiments; ++j) {
+            // Codificar y medir el tiempo
+            auto start = high_resolution_clock::now();
+            encodedString = huffman.codificar(text);
+            auto stop = high_resolution_clock::now();
+            encodeTimes[i][j] = duration_cast<microseconds>(stop - start).count() / 1'000'000.0;
+        }
+        encodedResults.push_back(encodedString);
+        string decodedString = huffman.decodificar(encodedString);
+        decodedResults.push_back(decodedString);
+    }
+    cout << "Compressed Results" << endl;
+    for (const auto& result : encodedResults) {
+        cout << result << endl;
+    }
 
-    string decodedString = huffman.decodificar(encodedString);
+    cout << endl << "Encode Times (seconds)" << endl;
+    cout << fixed << setprecision(5);
+    for (const auto& times : encodeTimes) {
+        for (const auto& time : times) {
+            cout << time << ";";
+        }
+        cout << endl;
+    }
 
-    start = high_resolution_clock::now();
-    huffman.decodificar(encodedString);
-    stop = high_resolution_clock::now();
-    auto decode_duration = duration_cast<microseconds>(stop - start).count();
-    cout << "Resultado de Descodificar:" << decodedString << endl;
-    cout << "Tiempo de Descodificar:" << decode_duration << endl;
+    cout << endl << "Decompressed Results" << endl;
+    for (const auto& result : decodedResults) {
+        cout << result << endl;
+    }
+
+    cout << endl << "Decode Times (seconds)" << endl;
+    cout << fixed << setprecision(5);
+    for (const auto& times : decodeTimes) {
+        for (const auto& time : times) {
+            cout << time << ";";
+        }
+        cout << endl;
+    }
 
     return 0;
 }

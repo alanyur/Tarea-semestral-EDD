@@ -4,69 +4,106 @@
 #include <sstream>
 #include <vector>
 #include <utility>
+#include <iomanip>
 #include "LZ.cpp"
 
 using namespace std;
 using namespace std::chrono;
 
-string readFile(const string& filename) {
+vector<string> readLines(const string& filename) {
     ifstream inFile(filename);
+    vector<string> lines;
+    string line;
     if (inFile.is_open()) {
-        stringstream buffer;
-        buffer << inFile.rdbuf();
+        while (getline(inFile, line)) {
+            lines.push_back(line);
+        }
         inFile.close();
-        return buffer.str();
     } else {
         cerr << "No se pudo abrir el archivo de entrada: " << filename << endl;
-        return "";
     }
+    return lines;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     string inputFilename = "input.txt";
-    string text = readFile(inputFilename);
+    int numExperiments = 1;
 
-    if (text.empty()) {
+    if (argc > 1) {
+        numExperiments = stoi(argv[1]);
+    }
+
+    vector<string> lines = readLines(inputFilename);
+
+    if (lines.empty()) {
         cerr << "El archivo de entrada está vacío o no se pudo leer." << endl;
         return 1;
     }
 
     LZ lz;
 
-    // Comprimir y obtener los pares ordenados del diccionario
-    auto start = high_resolution_clock::now();
-    vector<pair<int, int>> compressed = lz.comprimir(text);
-    auto stop = high_resolution_clock::now();
-    auto encode_duration = duration_cast<microseconds>(stop - start).count();
+    vector<string> compressedResults;
+    vector<vector<double>> encodeTimes(lines.size(), vector<double>(numExperiments));
+    vector<string> decompressedResults;
+    vector<vector<double>> decodeTimes(lines.size(), vector<double>(numExperiments));
 
-    // Construir la cadena del resultado de la compresión
-    stringstream compressed_result;
-    compressed_result << "Resultado de Codificar: ";
-    for (const auto& entry : compressed) {
-        if (entry.second == 0) {
-            compressed_result << "(" << static_cast<char>(entry.first) << ", " << entry.second << ") ";
-        } else {
-            compressed_result << "(" << entry.first << ", " << entry.second << ") ";
+    // Procesar cada línea
+    for (int i = 0; i < lines.size(); ++i) {
+        const auto& text = lines[i];
+    
+        for (int j = 0; j < numExperiments; ++j) {
+            auto start = high_resolution_clock::now();
+            vector<pair<int, int>> compressed = lz.comprimir(text);
+            auto stop = high_resolution_clock::now();
+            encodeTimes[i][j] = duration_cast<nanoseconds>(stop - start).count() / 1'000'000.0;
+            if (j == 0) {
+                stringstream compressed_result;
+                for (const auto& entry : compressed) {
+                    if (entry.second == 0) {
+                        compressed_result << "(" << static_cast<char>(entry.first) << " / " << entry.second << ") ";
+                    } else {
+                        compressed_result << "(" << entry.first << " / " << entry.second << ") ";
+                    }
+                }
+                compressedResults.push_back(compressed_result.str());
+            }
+            start = high_resolution_clock::now();
+            string decodedString = lz.descomprimir(compressed);
+            stop = high_resolution_clock::now();
+            decodeTimes[i][j] = duration_cast<nanoseconds>(stop - start).count() / 1'000'000.0; // Convertir a segundos
+
+            if (j == 0) {
+                decompressedResults.push_back(decodedString);
+            }
         }
     }
-    compressed_result << endl;
-    compressed_result << "Tiempo de Codificar: " << encode_duration << " microseconds" << endl;
+    cout << "Compressed Results" << endl;
+    for (const auto& result : compressedResults) {
+        cout << result << endl;
+    }
 
-    // Realizar la descompresión y medir el tiempo
-    string decodedString = lz.descomprimir(compressed);
+    cout << endl << "Encode Times (seconds)" << endl;
+    cout << fixed << setprecision(5); 
+    for (const auto& times : encodeTimes) {
+        for (const auto& time : times) {
+            cout << time << ";";
+        }
+        cout << endl;
+    }
 
-    start = high_resolution_clock::now();
-    lz.descomprimir(compressed);
-    stop = high_resolution_clock::now();
-    auto decode_duration = duration_cast<microseconds>(stop - start).count();
+    cout << endl << "Decompressed Results" << endl;
+    for (const auto& result : decompressedResults) {
+        cout << result << endl;
+    }
 
-    // Construir la cadena del resultado de la descompresión
-    stringstream decompressed_result;
-    decompressed_result << "Resultado de Descodificar: " << decodedString << endl;
-    decompressed_result << "Tiempo de Descodificar: " << decode_duration << " microseconds" << endl;
-
-    // Imprimir todo junto para facilitar la captura en el archivo por lotes
-    cout << compressed_result.str() << decompressed_result.str();
+    cout << endl << "Decode Times (seconds)" << endl;
+    cout << fixed << setprecision(5);
+    for (const auto& times : decodeTimes) {
+        for (const auto& time : times) {
+            cout << time << ";";
+        }
+        cout << endl;
+    }
 
     return 0;
 }
