@@ -5,7 +5,7 @@
 #include <vector>
 #include <utility>
 #include <iomanip>
-#include "LZ.cpp"
+#include "lz_compression.cpp"
 
 using namespace std;
 using namespace std::chrono;

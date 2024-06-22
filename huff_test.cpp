@@ -6,85 +6,103 @@
 #include <iomanip>
 #include "huff_codification.cpp"
 
-using namespace std;
-using namespace std::chrono;
-
-vector<string> readLines(const string& filename) {
-    ifstream inFile(filename);
-    vector<string> lines;
-    string line;
+/**
+ * @brief Lee las líneas del archivo de entrada y crea un vector de strings para luego poder procesarlas
+ * @param filename Nombre del archivo a leer.
+ * @return Vector de strings que contiene las líneas del archivo.
+ */
+std::vector<std::string> readLines(const std::string& filename) {
+    std::ifstream inFile(filename);
+    std::vector<std::string> lines;
+    std::string line;
     if (inFile.is_open()) {
-        while (getline(inFile, line)) {
+        while (std::getline(inFile, line)) {
             lines.push_back(line);
         }
         inFile.close();
     } else {
-        cerr << "No se pudo abrir el archivo de entrada: " << filename << endl;
+        std::cerr << "No se pudo abrir el archivo de entrada: " << filename << std::endl;
     }
     return lines;
 }
 
+/**
+ * @brief Punto de entrada principal del programa.
+ * @param argc Número de argumentos de línea de comandos.
+ * @param argv Argumentos de línea de comandos.
+ * @return Código de estado de la ejecución del programa.
+ */
 int main(int argc, char* argv[]) {
-    string inputFilename = "input.txt";
+    std::string inputFilename = "input.txt";
     int numExperiments = 1;
 
     if (argc > 1) {
-        numExperiments = stoi(argv[1]);
+        numExperiments = std::stoi(argv[1]);
     }
 
-    vector<string> lines = readLines(inputFilename);
+    std::vector<std::string> lines = readLines(inputFilename);
 
     if (lines.empty()) {
-        cerr << "El archivo de entrada está vacío o no se pudo leer." << endl;
+        std::cerr << "El archivo de entrada está vacío o no se pudo leer." << std::endl;
         return 1;
     }
 
     HuffmanCoding huffman;
 
-    vector<string> encodedResults;
-    vector<vector<double>> encodeTimes(lines.size(), vector<double>(numExperiments));
-    vector<string> decodedResults;
-    vector<vector<double>> decodeTimes(lines.size(), vector<double>(numExperiments));
+    std::vector<std::string> encodedResults;
+    std::vector<std::vector<double>> encodeTimes(lines.size(), std::vector<double>(numExperiments));
+    std::vector<std::string> decodedResults;
+    std::vector<std::vector<double>> decodeTimes(lines.size(), std::vector<double>(numExperiments));
+    
     for (int i = 0; i < lines.size(); ++i) {
-        string text = lines[i];
-        string encodedString;
+        std::string text = lines[i];
+        std::string encodedString;
         for (int j = 0; j < numExperiments; ++j) {
-            // Codificar y medir el tiempo
-            auto start = high_resolution_clock::now();
+            // Medir tiempo de codificación
+            auto start = std::chrono::high_resolution_clock::now();
             encodedString = huffman.codificar(text);
-            auto stop = high_resolution_clock::now();
-            encodeTimes[i][j] = duration_cast<microseconds>(stop - start).count() / 1'000'000.0;
+            auto stop = std::chrono::high_resolution_clock::now();
+            encodeTimes[i][j] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() / 1e9;
         }
         encodedResults.push_back(encodedString);
-        string decodedString = huffman.decodificar(encodedString);
+
+        for (int j = 0; j < numExperiments; ++j) {
+            // Medir tiempo de decodificación
+            auto start = std::chrono::high_resolution_clock::now();
+            std::string decodedString = huffman.decodificar(encodedString);
+            auto stop = std::chrono::high_resolution_clock::now();
+            decodeTimes[i][j] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() / 1e9;
+        }
+        std::string decodedString = huffman.decodificar(encodedString);
         decodedResults.push_back(decodedString);
     }
-    cout << "Compressed Results" << endl;
+
+    std::cout << "Compressed Results" << std::endl;
     for (const auto& result : encodedResults) {
-        cout << result << endl;
+        std::cout << result << std::endl;
     }
 
-    cout << endl << "Encode Times (seconds)" << endl;
-    cout << fixed << setprecision(5);
+    std::cout << std::endl << "Encode Times (seconds)" << std::endl;
+    std::cout << std::scientific << std::setprecision(3);
     for (const auto& times : encodeTimes) {
         for (const auto& time : times) {
-            cout << time << ";";
+            std::cout << time << ";";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 
-    cout << endl << "Decompressed Results" << endl;
+    std::cout << std::endl << "Decompressed Results" << std::endl;
     for (const auto& result : decodedResults) {
-        cout << result << endl;
+        std::cout << result << std::endl;
     }
 
-    cout << endl << "Decode Times (seconds)" << endl;
-    cout << fixed << setprecision(5);
+    std::cout << std::endl << "Decode Times (seconds)" << std::endl;
+    std::cout << std::scientific << std::setprecision(3);
     for (const auto& times : decodeTimes) {
         for (const auto& time : times) {
-            cout << time << ";";
+            std::cout << time << ";";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 
     return 0;
