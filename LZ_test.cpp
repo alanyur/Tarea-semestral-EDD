@@ -46,11 +46,14 @@ int main(int argc, char* argv[]) {
     vector<vector<double>> encodeTimes(lines.size(), vector<double>(numExperiments));
     vector<string> decompressedResults;
     vector<vector<double>> decodeTimes(lines.size(), vector<double>(numExperiments));
+    vector<size_t> originalSizes;
+    vector<size_t> compressedSizes;
 
     // Procesar cada línea
     for (int i = 0; i < lines.size(); ++i) {
         const auto& text = lines[i];
-    
+        originalSizes.push_back(text.size());
+
         for (int j = 0; j < numExperiments; ++j) {
             auto start = high_resolution_clock::now();
             vector<pair<int, int>> compressed = lz.comprimir(text);
@@ -66,6 +69,7 @@ int main(int argc, char* argv[]) {
                     }
                 }
                 compressedResults.push_back(compressed_result.str());
+                compressedSizes.push_back(compressed_result.str().size());
             }
             start = high_resolution_clock::now();
             string decodedString = lz.descomprimir(compressed);
@@ -104,6 +108,15 @@ int main(int argc, char* argv[]) {
         }
         cout << endl;
     }
-
+    cout << endl << "Size of Original Data (bytes)" << endl;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        cout << "Line " << i + 1 << ": "
+             << "Original: " << originalSizes[i] << " bytes, "<< endl;
+    }
+    cout << endl << "Size of Compressed Data (bytes)" << endl;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        cout << "Line " << i + 1 << ": "
+             << "Compressed: " << compressedSizes[i] << " bytes, "<< endl;
+    }
     return 0;
 }
