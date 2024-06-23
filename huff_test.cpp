@@ -53,10 +53,14 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<double>> encodeTimes(lines.size(), std::vector<double>(numExperiments));
     std::vector<std::string> decodedResults;
     std::vector<std::vector<double>> decodeTimes(lines.size(), std::vector<double>(numExperiments));
+    std::vector<size_t> originalSizes;
+    std::vector<size_t> encodedSizes;
+    //std::vector<size_t> decodedSizes;
     
     for (int i = 0; i < lines.size(); ++i) {
         std::string text = lines[i];
         std::string encodedString;
+        originalSizes.push_back(text.size() * sizeof(char));
         for (int j = 0; j < numExperiments; ++j) {
             // Medir tiempo de codificación
             auto start = std::chrono::high_resolution_clock::now();
@@ -65,7 +69,7 @@ int main(int argc, char* argv[]) {
             encodeTimes[i][j] = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() / 1e9;
         }
         encodedResults.push_back(encodedString);
-
+        encodedSizes.push_back(encodedString.size() * sizeof(char));
         for (int j = 0; j < numExperiments; ++j) {
             // Medir tiempo de decodificación
             auto start = std::chrono::high_resolution_clock::now();
@@ -75,6 +79,12 @@ int main(int argc, char* argv[]) {
         }
         std::string decodedString = huffman.decodificar(encodedString);
         decodedResults.push_back(decodedString);
+        //decodedSizes.push_back(decodedString.size() * sizeof(char));
+    }
+    for (int i = 0; i < lines.size(); ++i) {
+        std::cout << "Original Size: " << originalSizes[i] << " bytes" << std::endl;
+        std::cout << "Encoded Size: " << encodedSizes[i] << " bytes" << std::endl;
+        //std::cout << "Tamaño decodificado: " << decodedSizes[i] << " bytes" << std::endl;
     }
 
     std::cout << "Compressed Results" << std::endl;
