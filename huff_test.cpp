@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<double>> encodeTimes(lines.size(), std::vector<double>(numExperiments));
     std::vector<std::string> decodedResults;
     std::vector<std::vector<double>> decodeTimes(lines.size(), std::vector<double>(numExperiments));
-    std::vector<size_t> originalSizes;
-    std::vector<size_t> encodedSizes;
+    std::vector<int> originalSizes;
+    std::vector<int> encodedSizes;
     //std::vector<size_t> decodedSizes;
     
     for (int i = 0; i < lines.size(); ++i) {

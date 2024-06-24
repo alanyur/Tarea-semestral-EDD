@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 set input_filename=input.txt
 set output_filename=output_huff.csv
 set executable=huff_run.exe
-set num_experiments=20
+set num_experiments=31
 
 g++ -o %executable% huff_test.cpp
 
